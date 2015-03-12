@@ -66,37 +66,14 @@ if (!empty($INTERVAL)) {
     $interval = $INTERVAL;
 }
 
-$count = 1;
-$COUNT = getenv('COUNT');
-if (!empty($COUNT) && $COUNT > 1) {
-    $count = $COUNT;
+$PIDFILE = getenv('PIDFILE');
+if ($PIDFILE) {
+    file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
 }
 
-if ($count > 1) {
-    for ($i = 0; $i < $count; ++$i) {
-        $pid = pcntl_fork();
-        if ($pid == -1) {
-            die("Could not fork worker " . $i . "\n");
-        } elseif (!$pid) { // Child, start the worker
-            startWorker($QUEUE, $logLevel, $logger, $interval);
-            break;
-        }
-    }
-} else { // Start a single worker
-
-    $PIDFILE = getenv('PIDFILE');
-    if ($PIDFILE) {
-        file_put_contents($PIDFILE, getmypid()) or die('Could not write PID information to ' . $PIDFILE);
-    }
-
-    startWorker($QUEUE, $logLevel, $logger, $interval);
-}
-
-function startWorker($QUEUE, $logLevel, $logger, $interval)
-{
-    $queues = explode(',', $QUEUE);
-    $worker = new Resque_Worker($queues);
-    $worker->registerLogger($logger);
-    $worker->logLevel = $logLevel;
-    $worker->work($interval);
-}
+//Start worker
+$queues = explode(',', $QUEUE);
+$worker = new Resque_Worker($queues);
+$worker->registerLogger($logger);
+$worker->logLevel = $logLevel;
+$worker->work($interval);
