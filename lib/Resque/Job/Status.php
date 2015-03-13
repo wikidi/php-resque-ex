@@ -47,13 +47,16 @@ class Resque_Job_Status
 	 * all necessary keys in Redis to monitor the status of a job.
 	 *
 	 * @param string $id The ID of the job to monitor the status of.
+	 * @param int $status Initial status of Job. @see self::STATUS_*
+	 * @parram $customData Your own notes or data
 	 */
-	public static function create($id, $status = self::STATUS_WAITING)
+	public static function create($id, $status = self::STATUS_WAITING, $customData = array())
 	{
 		$statusPacket = array(
 			'status' => $status,
 			'updated' => time(),
 			'started' => time(),
+			'custom' => $customData
 		);
 		Resque::redis()->set('job:' . $id . ':status', json_encode($statusPacket));
 	}
@@ -90,10 +93,14 @@ class Resque_Job_Status
 			return;
 		}
 
-		$statusPacket = array(
-			'status' => $status,
-			'updated' => time(),
-		);
+		$statusPacket = $this->fetchStatusPacket();
+		if(!is_array($statusPacket)) {//no data
+			$statusPacket = array();
+		}
+
+		$statusPacket['status'] = $status;
+		$statusPacket['updated'] = time();
+
 		Resque::redis()->set((string)$this, json_encode($statusPacket));
 
 		// Expire the status for completed jobs after 24 hours
@@ -114,12 +121,19 @@ class Resque_Job_Status
 			return false;
 		}
 
-		$statusPacket = json_decode(Resque::redis()->get((string)$this), true);
+		$statusPacket = $this->fetchStatusPacket();
 		if(!$statusPacket) {
 			return false;
 		}
 
 		return $statusPacket['status'];
+	}
+
+	/**
+	 * @return array Status record data from Redis or NULL if the status is not being monitored or data could not be parsed
+	 */
+	public function fetchStatusPacket() {
+		return json_decode(Resque::redis()->get((string)$this), true);
 	}
 
 	/**
