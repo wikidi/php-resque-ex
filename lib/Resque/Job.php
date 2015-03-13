@@ -62,30 +62,26 @@ class Resque_Job
 			);
 		}
 
-		$new = true;
 		if(isset($args['id'])) {
-			$id = $args['id'];
-			unset($args['id']);
-			$new = false;
+			$statusInstance = new Resque_Job_Status($args['id']);
 		} else {
-			$id = md5(uniqid('', true));
+			$args['id'] = md5(uniqid('', true));
 		}
 		Resque::push($queue, array(
 			'class'	=> $class,
 			'args'	=> array($args),
-			'id'	=> $id,
+			'id'	=> $args['id'],
 		));
 
 		if ($monitor) {
-			if ($new) {
-				Resque_Job_Status::create($id);
+			if (isset($statusInstance) && $statusInstance->isTracking()) {
+				 $statusInstance->update(Resque_Job_Status::STATUS_WAITING);
 			} else {
-				$statusInstance = new Resque_Job_Status($id);
-				$statusInstance->update($id, Resque_Job_Status::STATUS_WAITING);
+				Resque_Job_Status::create($args['id']);
 			}
 		}
 
-		return $id;
+		return $args['id'];
 	}
 
 	/**
