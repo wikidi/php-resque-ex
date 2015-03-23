@@ -80,23 +80,18 @@ class Resque
 			$server = 'localhost:6379';
 		}
 
-		if(is_array($server)) {
-			require_once dirname(__FILE__) . '/Resque/RedisCluster.php';
-			self::$redis = new Resque_RedisCluster($server);
+
+		if (strpos($server, 'unix:') === false) {
+			list($host, $port) = explode(':', $server);
 		}
 		else {
-			if (strpos($server, 'unix:') === false) {
-				list($host, $port) = explode(':', $server);
-			}
-			else {
-				$host = $server;
-				$port = null;
-			}
-			require_once dirname(__FILE__) . '/Resque/Redis.php';
-			$redisInstance = new Resque_Redis($host, $port);
-			$redisInstance->prefix(self::$namespace);
-			self::$redis = $redisInstance;
+			$host = $server;
+			$port = null;
 		}
+		require_once dirname(__FILE__) . '/Resque/Redis.php';
+		$redisInstance = new Resque_Redis($host, $port);
+		$redisInstance->prefix(self::$namespace);
+		self::$redis = $redisInstance;
 
 		self::$redis->select(self::$redisDatabase);
 		return self::$redis;

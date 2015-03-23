@@ -14,7 +14,7 @@ This fork provides some additional features :
 
 ### Support of php-redis
 
-Autodetect and use [phpredis](https://github.com/nicolasff/phpredis) to connect to Redis if available. Redisent is used as fallback.
+Uses [phpredis](https://github.com/nicolasff/phpredis) to connect to Redis.
 
 ### Powerfull logging
 
