@@ -9,7 +9,8 @@
 class Resque_Tests_TestCase extends PHPUnit_Framework_TestCase
 {
 	protected $resque;
-	protected $redis;
+	/** @var \Resque_Redis */
+	private $redis;
 
 	public function setUp()
 	{
@@ -22,5 +23,6 @@ class Resque_Tests_TestCase extends PHPUnit_Framework_TestCase
 
 		// Flush redis
 		$this->redis->flushAll();
+		$this->redis->close();
 	}
 }

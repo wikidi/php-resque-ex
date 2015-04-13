@@ -14,6 +14,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
 
 	public function setUp()
 	{
+		parent::setUp();
 		Test_Job::$called = false;
 
 		// Register a worker to test with
@@ -23,6 +24,7 @@ class Resque_Tests_EventTest extends Resque_Tests_TestCase
 
 	public function tearDown()
 	{
+		parent::tearDown();
 		Resque_Event::clearListeners();
 		$this->callbacksHit = array();
 	}

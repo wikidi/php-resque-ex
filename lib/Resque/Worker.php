@@ -241,6 +241,7 @@ class Resque_Worker
 
             if ($this->child > 0) {
                 // Parent process, sit and wait
+                Resque::forked();
                 $status = 'Forked ' . $this->child . ' for ID:' . $job->payload['id'];
                 $this->updateProcLine($status);
                 $this->log(array('message' => $status, 'data' => array('type' => 'fork', 'worker' => $workerName, 'job_id' => $job->payload['id'])), self::LOG_TYPE_DEBUG);

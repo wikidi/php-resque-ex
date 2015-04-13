@@ -3,7 +3,7 @@ class Resque_Redis extends Redis
 {
 	private static $defaultNamespace = 'resque:';
 
-	public function __construct($host, $port, $timeout = 5)
+	public function __construct($host, $port, $timeout = 0)
 	{
 		parent::__construct();
 
@@ -16,7 +16,7 @@ class Resque_Redis extends Redis
 
 	function establishConnection()
 	{
-		$this->pconnect($this->host, (int) $this->port, (int) $this->timeout);
+		$this->connect($this->host, (int) $this->port, $this->timeout);
 		$this->setOption(Redis::OPT_PREFIX, self::$defaultNamespace);
 	}
 

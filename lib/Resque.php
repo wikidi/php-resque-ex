@@ -19,6 +19,11 @@ class Resque
 	public static $redis = null;
 
 	/**
+	 * @var \Redis[]
+	 */
+	private static $childrensRedises = array();
+
+	/**
 	 * @var mixed Host/port conbination separated by a colon, or a nested
 	 * array of server swith host/port pairs
 	 */
@@ -33,12 +38,6 @@ class Resque
 	 * @var string namespace of the redis keys
 	 */
 	protected static $namespace = '';
-
-	/**
-	 * @var int PID of current process. Used to detect changes when forking
-	 *  and implement "thread" safety to avoid race conditions.
-	 */
-	 protected static $pid = null;
 
 	/**
 	 * Given a host/port combination separated by a colon, set it as
@@ -63,14 +62,6 @@ class Resque
 	 */
 	public static function redis()
 	{
-		// Detect when the PID of the current process has changed (from a fork, etc)
-		// and force a reconnect to redis.
-		$pid = getmypid();
-		if (self::$pid !== $pid) {
-			self::$redis = null;
-			self::$pid   = $pid;
-		}
-
 		if(!is_null(self::$redis)) {
 			return self::$redis;
 		}
@@ -95,6 +86,14 @@ class Resque
 
 		self::$redis->select(self::$redisDatabase);
 		return self::$redis;
+	}
+
+	/**
+	 * Call this whenever process is forked (parent)
+	 */
+	public static function forked() {
+		self::$childrensRedises[] = self::$redis; //backup child's connection so we won't close it on reconnect (child will close it by itself)
+		self::$redis = null; //apply for reconnect..
 	}
 
 	/**
